@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CineCraze Icon Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        canvas { border: 1px solid #ccc; margin: 10px; cursor: pointer; }
+        .icon-set { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .icon-item { text-align: center; }
+        .download-all { 
+            background: #e50914; 
+            color: white; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            margin: 20px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .download-all:hover { background: #b20710; }
+        h1 { text-align: center; color: #e50914; }
+        .instructions { text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 CineCraze PWA Icon Generator</h1>
+        <div class="instructions">
+            <p><strong>Instructions:</strong></p>
+            <p>1. Click "Download All Icons" to download all PNG icons at once</p>
+            <p>2. Or click on individual icons to download them one by one</p>
+            <p>3. Save all downloaded icons to the <code>/icons/</code> folder in your project</p>
+        </div>
+        
+        <button class="download-all" onclick="downloadAllIcons()">Download All Icons</button>
+        
+        <div class="icon-set" id="iconSet"></div>
+    </div>
+    
+    <script>
+        const sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512];
+        const iconSet = document.getElementById('iconSet');
+        
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x + radius, y + height);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+        
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Create a red background with rounded corners
+            ctx.fillStyle = '#e50914';
+            const radius = size * 0.2;
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Add "C" for CineCraze
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.6}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('C', size / 2, size / 2);
+            
+            return canvas;
+        }
+        
+        function downloadIcon(size) {
+            const canvas = createIcon(size);
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function downloadAllIcons() {
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    downloadIcon(size);
+                }, index * 200); // Stagger downloads
+            });
+        }
+        
+        // Generate and display icons
+        sizes.forEach(size => {
+            const canvas = createIcon(size);
+            
+            const iconItem = document.createElement('div');
+            iconItem.className = 'icon-item';
+            
+            const label = document.createElement('div');
+            label.textContent = `${size}x${size}`;
+            label.style.marginTop = '5px';
+            label.style.fontWeight = 'bold';
+            
+            iconItem.appendChild(canvas);
+            iconItem.appendChild(label);
+            iconSet.appendChild(iconItem);
+            
+            // Add click handler
+            canvas.addEventListener('click', () => downloadIcon(size));
+        });
+    </script>
+</body>
+</html>
