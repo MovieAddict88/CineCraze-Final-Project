@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - CineCraze</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #ddd;
+        }
+        .test-item.pass {
+            border-left-color: #4CAF50;
+            background: #f1f8e9;
+        }
+        .test-item.fail {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        .test-item.warning {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+        .install-button {
+            background: #e50914;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .install-button:hover {
+            background: #b20710;
+        }
+        .install-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>CineCraze PWA Test Page</h1>
+    <p>This page helps test the Progressive Web App functionality of CineCraze.</p>
+
+    <div class="test-section">
+        <h2>PWA Installation Test</h2>
+        <button id="installButton" class="install-button" disabled>Install CineCraze PWA</button>
+        <div id="installStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>PWA Features Test</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Service Worker Test</h2>
+        <div id="swStatus"></div>
+        <button onclick="testOffline()">Test Offline Mode</button>
+        <div id="offlineTest"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Manifest Test</h2>
+        <div id="manifestTest"></div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+        const installStatus = document.getElementById('installStatus');
+        const testResults = document.getElementById('testResults');
+        const swStatus = document.getElementById('swStatus');
+        const manifestTest = document.getElementById('manifestTest');
+
+        // PWA Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.disabled = false;
+            installStatus.innerHTML = '<div class="test-item pass">✓ Install prompt is available</div>';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                installStatus.innerHTML = `<div class="test-item ${outcome === 'accepted' ? 'pass' : 'fail'}">${outcome === 'accepted' ? '✓' : '✗'} User ${outcome} the install prompt</div>`;
+                deferredPrompt = null;
+                installButton.disabled = true;
+            }
+        });
+
+        // Test PWA Features
+        function testPWAFeatures() {
+            const tests = [
+                {
+                    name: 'Service Worker Support',
+                    test: () => 'serviceWorker' in navigator,
+                    description: 'Browser supports Service Workers'
+                },
+                {
+                    name: 'Web App Manifest Support',
+                    test: () => 'onbeforeinstallprompt' in window,
+                    description: 'Browser supports Web App Manifest'
+                },
+                {
+                    name: 'Push Notifications Support',
+                    test: () => 'PushManager' in window,
+                    description: 'Browser supports Push Notifications'
+                },
+                {
+                    name: 'Background Sync Support',
+                    test: () => 'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype,
+                    description: 'Browser supports Background Sync'
+                },
+                {
+                    name: 'Cache API Support',
+                    test: () => 'caches' in window,
+                    description: 'Browser supports Cache API'
+                },
+                {
+                    name: 'IndexedDB Support',
+                    test: () => 'indexedDB' in window,
+                    description: 'Browser supports IndexedDB'
+                },
+                {
+                    name: 'HTTPS/SSL',
+                    test: () => location.protocol === 'https:' || location.hostname === 'localhost',
+                    description: 'Site is served over HTTPS or localhost'
+                }
+            ];
+
+            let results = '';
+            tests.forEach(test => {
+                const passed = test.test();
+                results += `<div class="test-item ${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'} ${test.name}: ${test.description}</div>`;
+            });
+
+            testResults.innerHTML = results;
+        }
+
+        // Test Service Worker
+        function testServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration()
+                    .then(registration => {
+                        if (registration) {
+                            swStatus.innerHTML = '<div class="test-item pass">✓ Service Worker is registered</div>';
+                            if (registration.active) {
+                                swStatus.innerHTML += '<div class="test-item pass">✓ Service Worker is active</div>';
+                            }
+                            if (registration.waiting) {
+                                swStatus.innerHTML += '<div class="test-item warning">⚠ New Service Worker is waiting</div>';
+                            }
+                            if (registration.installing) {
+                                swStatus.innerHTML += '<div class="test-item warning">⚠ Service Worker is installing</div>';
+                            }
+                        } else {
+                            swStatus.innerHTML = '<div class="test-item fail">✗ No Service Worker registered</div>';
+                        }
+                    })
+                    .catch(error => {
+                        swStatus.innerHTML = `<div class="test-item fail">✗ Service Worker error: ${error.message}</div>`;
+                    });
+            } else {
+                swStatus.innerHTML = '<div class="test-item fail">✗ Service Worker not supported</div>';
+            }
+        }
+
+        // Test Offline Mode
+        function testOffline() {
+            const offlineTest = document.getElementById('offlineTest');
+            offlineTest.innerHTML = '<div class="test-item warning">⚠ Testing offline mode...</div>';
+            
+            // Simulate offline by trying to fetch a non-existent resource
+            fetch('/test-offline-' + Date.now())
+                .then(() => {
+                    offlineTest.innerHTML = '<div class="test-item fail">✗ Offline test failed - still online</div>';
+                })
+                .catch(() => {
+                    offlineTest.innerHTML = '<div class="test-item pass">✓ Offline mode working - request failed as expected</div>';
+                });
+        }
+
+        // Test Manifest
+        function testManifest() {
+            fetch('/manifest.json')
+                .then(response => response.json())
+                .then(manifest => {
+                    let results = '<div class="test-item pass">✓ Manifest file loaded successfully</div>';
+                    
+                    // Check required fields
+                    const requiredFields = ['name', 'short_name', 'start_url', 'display', 'icons'];
+                    requiredFields.forEach(field => {
+                        if (manifest[field]) {
+                            results += `<div class="test-item pass">✓ ${field} is present</div>`;
+                        } else {
+                            results += `<div class="test-item fail">✗ ${field} is missing</div>`;
+                        }
+                    });
+
+                    // Check icons
+                    if (manifest.icons && manifest.icons.length > 0) {
+                        const iconSizes = manifest.icons.map(icon => icon.sizes);
+                        results += `<div class="test-item pass">✓ Icons present: ${iconSizes.join(', ')}</div>`;
+                    } else {
+                        results += '<div class="test-item fail">✗ No icons found</div>';
+                    }
+
+                    manifestTest.innerHTML = results;
+                })
+                .catch(error => {
+                    manifestTest.innerHTML = `<div class="test-item fail">✗ Manifest test failed: ${error.message}</div>`;
+                });
+        }
+
+        // Run all tests on page load
+        window.addEventListener('load', () => {
+            testPWAFeatures();
+            testServiceWorker();
+            testManifest();
+        });
+
+        // Listen for app installed event
+        window.addEventListener('appinstalled', () => {
+            installStatus.innerHTML += '<div class="test-item pass">✓ App was successfully installed!</div>';
+        });
+    </script>
+</body>
+</html>

@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineCraze</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Stream your favorite movies and TV shows with CineCraze - the ultimate entertainment platform">
+    <meta name="theme-color" content="#e50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CineCraze">
+    <meta name="msapplication-TileColor" content="#e50914">
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="shortcut icon" href="/icons/icon-192x192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
@@ -8178,6 +8200,192 @@ playerInstance.on('ready', event => {
     addPipButtonToPlayer();
 });
         // --- End Stretch Functionality ---
+
+        // --- PWA Functionality ---
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New content is available, show update notification
+                                    showUpdateNotification();
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        let installButton;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt triggered');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button or notification
+            showInstallPrompt();
+        });
+
+        function showInstallPrompt() {
+            // Create install notification
+            const installNotification = document.createElement('div');
+            installNotification.className = 'notification-bar';
+            installNotification.innerHTML = `
+                <p>Install CineCraze for a better experience!</p>
+                <button class="install-btn" onclick="installPWA()">Install</button>
+                <button class="close-btn" onclick="closeInstallPrompt()">&times;</button>
+            `;
+            
+            // Add styles for install button
+            const style = document.createElement('style');
+            style.textContent = `
+                .install-btn {
+                    background: white;
+                    color: var(--primary);
+                    border: none;
+                    padding: 8px 16px;
+                    margin-left: 15px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .install-btn:hover {
+                    background: #f0f0f0;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.insertBefore(installNotification, document.body.firstChild);
+            installNotification.style.display = 'flex';
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                    closeInstallPrompt();
+                });
+            }
+        }
+
+        function closeInstallPrompt() {
+            const notification = document.querySelector('.notification-bar');
+            if (notification) {
+                notification.remove();
+            }
+        }
+
+        // Update notification
+        function showUpdateNotification() {
+            const updateNotification = document.createElement('div');
+            updateNotification.className = 'notification-bar';
+            updateNotification.innerHTML = `
+                <p>New version available! Refresh to update.</p>
+                <button class="update-btn" onclick="updateApp()">Update</button>
+                <button class="close-btn" onclick="closeUpdatePrompt()">&times;</button>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .update-btn {
+                    background: white;
+                    color: var(--primary);
+                    border: none;
+                    padding: 8px 16px;
+                    margin-left: 15px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .update-btn:hover {
+                    background: #f0f0f0;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.insertBefore(updateNotification, document.body.firstChild);
+            updateNotification.style.display = 'flex';
+        }
+
+        function updateApp() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration().then(registration => {
+                    if (registration && registration.waiting) {
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+
+        function closeUpdatePrompt() {
+            const notification = document.querySelector('.notification-bar');
+            if (notification) {
+                notification.remove();
+            }
+        }
+
+        // Handle app installed event
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('PWA was installed');
+            closeInstallPrompt();
+        });
+
+        // Handle online/offline status
+        function updateOnlineStatus() {
+            const status = navigator.onLine ? 'online' : 'offline';
+            console.log('Connection status:', status);
+            
+            if (!navigator.onLine) {
+                // Show offline indicator
+                const offlineIndicator = document.createElement('div');
+                offlineIndicator.id = 'offline-indicator';
+                offlineIndicator.style.cssText = `
+                    position: fixed;
+                    top: 70px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #ff4444;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    z-index: 1002;
+                    font-size: 14px;
+                `;
+                offlineIndicator.textContent = 'You are offline';
+                document.body.appendChild(offlineIndicator);
+            } else {
+                const indicator = document.getElementById('offline-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // --- End PWA Functionality ---
 
     </script>
 
