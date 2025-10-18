@@ -1880,7 +1880,7 @@
         }
         
         .install-button {
-            display: inline-block;
+            display: none; /* Hidden by default, shown when PWA is installable */
             padding: 15px 25px;
             font-size: 18px;
             font-weight: bold;
@@ -8267,7 +8267,10 @@ playerInstance.on('ready', event => {
             e.preventDefault();
             // Stash the event so it can be triggered later
             deferredPrompt = e;
+            // Show the install button
+            installButton.style.display = 'inline-block';
             console.log('🎉 deferredPrompt set:', !!deferredPrompt);
+            console.log('✅ Install button shown');
         });
 
         // Handle install button click
@@ -8282,6 +8285,15 @@ playerInstance.on('ready', event => {
                 // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
                 console.log(`User response to the install prompt: ${outcome}`);
+                
+                if (outcome === 'accepted') {
+                    console.log('✅ User accepted the install prompt');
+                    // Hide the install button
+                    installButton.style.display = 'none';
+                } else {
+                    console.log('❌ User dismissed the install prompt');
+                }
+                
                 // Clear the deferredPrompt so it can only be used once
                 deferredPrompt = null;
             } else {
@@ -8294,6 +8306,8 @@ playerInstance.on('ready', event => {
         // Listen for the appinstalled event
         window.addEventListener('appinstalled', (evt) => {
             console.log('PWA was installed');
+            // Hide the install button
+            installButton.style.display = 'none';
             // Show success message
             showNotification('CineCraze has been installed successfully!', 'success');
         });
@@ -8302,9 +8316,8 @@ playerInstance.on('ready', event => {
         window.addEventListener('load', () => {
             if (window.matchMedia('(display-mode: standalone)').matches) {
                 console.log('App is running in standalone mode');
-                installButton.textContent = 'App Installed';
-                installButton.disabled = true;
-                installButton.style.opacity = '0.6';
+                // Hide the install button since app is already installed
+                installButton.style.display = 'none';
             }
         });
 
