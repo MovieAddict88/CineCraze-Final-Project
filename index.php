@@ -4,6 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineCraze</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Your ultimate destination for unlimited movies, TV shows, and live television. Stream anytime, anywhere on all your devices.">
+    <meta name="theme-color" content="#e50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CineCraze">
+    <meta name="msapplication-TileColor" content="#e50914">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
@@ -1857,6 +1878,27 @@
             overflow: hidden;
             transition: background-color 0.3s;
         }
+        
+        .install-button {
+            display: inline-block;
+            padding: 15px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #e50914;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        
+        .install-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
         .download-button::before {
             content: '';
@@ -1876,6 +1918,27 @@
         }
 
         .download-button:hover {
+            background-color: #b20710;
+        }
+        
+        .install-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s;
+        }
+
+        .install-button:hover::before {
+            transform: translate(-50%, -50%) scale(2);
+        }
+
+        .install-button:hover {
             background-color: #b20710;
         }
 
@@ -3105,7 +3168,7 @@
         <div class="footer-content">
             <div class="footer-about">
                 <div class="download-section">
-                    <a href="https://github.com/MovieAddict88/Movie-Source/raw/main/CineCraze.apk" class="download-button">Download CineCraze App</a>
+                    <button id="installButton" class="install-button">Install CineCraze App</button>
                     <img src="https://raw.githubusercontent.com/MovieAddict88/Movie-Source/main/cinecraze.png" alt="CineCraze App" class="download-image">
                 </div>
                 <p>Your ultimate destination for unlimited movies, TV shows, and live television. Stream anytime, anywhere on all your devices.</p>
@@ -3159,6 +3222,7 @@
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.7/shaka-player.compiled.js"></script>
+    <script src="/debug-pwa.js"></script>
     <script>
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
@@ -8178,6 +8242,95 @@ playerInstance.on('ready', event => {
     addPipButtonToPlayer();
 });
         // --- End Stretch Functionality ---
+
+        // --- PWA Installation ---
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('🎉 PWA install prompt triggered!', e);
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            console.log('🎉 deferredPrompt set:', !!deferredPrompt);
+        });
+
+        // Handle install button click
+        installButton.addEventListener('click', async () => {
+            console.log('🔘 Install button clicked');
+            console.log('🔘 deferredPrompt available:', !!deferredPrompt);
+            
+            if (deferredPrompt) {
+                console.log('🔘 Showing install prompt');
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // Clear the deferredPrompt so it can only be used once
+                deferredPrompt = null;
+            } else {
+                console.log('🔘 No deferredPrompt available');
+                // If PWA install is not available, show a message
+                showNotification('PWA installation is not available in this browser. Please use a modern browser like Chrome, Edge, or Safari.', 'info');
+            }
+        });
+
+        // Listen for the appinstalled event
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('PWA was installed');
+            // Show success message
+            showNotification('CineCraze has been installed successfully!', 'success');
+        });
+
+        // Check if app is already installed
+        window.addEventListener('load', () => {
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log('App is running in standalone mode');
+                installButton.textContent = 'App Installed';
+                installButton.disabled = true;
+                installButton.style.opacity = '0.6';
+            }
+        });
+
+        // Function to show notifications
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification-bar ${type}`;
+            notification.innerHTML = `
+                <p>${message}</p>
+                <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            
+            // Add to page
+            document.body.insertBefore(notification, document.body.firstChild);
+            
+            // Show notification
+            notification.style.display = 'flex';
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
 
     </script>
 
