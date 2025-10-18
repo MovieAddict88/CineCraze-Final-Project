@@ -2766,6 +2766,7 @@
     <div class="notification-bar" id="notification-bar">
         <p id="notification-message"></p>
         <button class="close-btn" id="close-notification">&times;</button>
+        <button class="close-btn" id="install-app" style="display:none">Install</button>
     </div>
 
     <!-- Header -->
@@ -3175,6 +3176,68 @@
           });
         });
       }
+    </script>
+    <script>
+      // In-app install prompt for Android (and Chrome desktop)
+      (function () {
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('install-app');
+        const notificationBar = document.getElementById('notification-bar');
+        const notificationMessage = document.getElementById('notification-message');
+        const closeBtn = document.getElementById('close-notification');
+        const header = document.querySelector('header');
+
+        function showInstallBar() {
+          if (!notificationBar) return;
+          if (notificationMessage) {
+            notificationMessage.textContent = 'Install CineCraze for faster access and offline support';
+          }
+          notificationBar.style.display = 'flex';
+          setTimeout(() => {
+            if (notificationBar.offsetHeight > 0 && header) {
+              header.style.top = `${notificationBar.offsetHeight}px`;
+            }
+          }, 50);
+          if (installBtn) installBtn.style.display = 'inline-block';
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Prevent the mini-infobar from appearing on mobile
+          e.preventDefault();
+          deferredPrompt = e;
+          showInstallBar();
+        });
+
+        if (installBtn) {
+          installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            installBtn.disabled = true;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              installBtn.style.display = 'none';
+              if (notificationBar) notificationBar.style.display = 'none';
+              if (header) header.style.top = '0';
+            } else {
+              installBtn.disabled = false;
+            }
+            deferredPrompt = null;
+          });
+        }
+
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            if (notificationBar) notificationBar.style.display = 'none';
+            if (header) header.style.top = '0';
+          });
+        }
+
+        window.addEventListener('appinstalled', () => {
+          if (installBtn) installBtn.style.display = 'none';
+          if (notificationBar) notificationBar.style.display = 'none';
+          if (header) header.style.top = '0';
+        });
+      })();
     </script>
     <script>
         if ('scrollRestoration' in history) {

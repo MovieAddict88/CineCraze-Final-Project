@@ -1,0 +1,12 @@
+# Ensure correct MIME for manifest
+AddType application/manifest+json .webmanifest
+
+# Cache control for PWA assets
+<FilesMatch "\.(webmanifest|js|css|png|jpg|jpeg|svg|webp)$">
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+
+# Service worker must not be cached aggressively during dev
+<Files "sw.js">
+  Header set Cache-Control "no-cache"
+</Files>
