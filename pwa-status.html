@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Status Check</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #141414; color: white; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #28a745; }
+        .error { background: #dc3545; }
+        .warning { background: #ffc107; color: #000; }
+        .info { background: #17a2b8; }
+        button { background: #e50914; color: white; border: none; padding: 15px 25px; border-radius: 5px; cursor: pointer; margin: 10px; font-size: 16px; }
+        button:hover { background: #b20710; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .check { margin: 10px 0; padding: 10px; border-left: 4px solid #e50914; background: #222; }
+    </style>
+</head>
+<body>
+    <h1>🔍 CineCraze PWA Status Check</h1>
+    
+    <div class="check">
+        <h3>🔒 Security Check</h3>
+        <div id="securityStatus" class="status info">Checking...</div>
+    </div>
+    
+    <div class="check">
+        <h3>⚙️ Service Worker Check</h3>
+        <div id="swStatus" class="status info">Checking...</div>
+    </div>
+    
+    <div class="check">
+        <h3>📄 Manifest Check</h3>
+        <div id="manifestStatus" class="status info">Checking...</div>
+    </div>
+    
+    <div class="check">
+        <h3>🖼️ Icons Check</h3>
+        <div id="iconsStatus" class="status info">Checking...</div>
+    </div>
+    
+    <div class="check">
+        <h3>📱 PWA Installation Check</h3>
+        <div id="installStatus" class="status info">Checking...</div>
+        <button id="installBtn" onclick="installPWA()" disabled>Install CineCraze App</button>
+    </div>
+    
+    <div class="check">
+        <h3>🌐 Browser Compatibility</h3>
+        <div id="browserStatus" class="status info">Checking...</div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        
+        // Security check
+        function checkSecurity() {
+            const status = document.getElementById('securityStatus');
+            if (window.isSecureContext) {
+                status.innerHTML = '✅ Secure context (HTTPS or localhost)';
+                status.className = 'status success';
+            } else {
+                status.innerHTML = '❌ Not a secure context. PWA requires HTTPS or localhost';
+                status.className = 'status error';
+            }
+        }
+        
+        // Service Worker check
+        async function checkServiceWorker() {
+            const status = document.getElementById('swStatus');
+            
+            if (!('serviceWorker' in navigator)) {
+                status.innerHTML = '❌ Service Worker not supported in this browser';
+                status.className = 'status error';
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                status.innerHTML = '✅ Service Worker registered successfully';
+                status.className = 'status success';
+            } catch (error) {
+                status.innerHTML = '❌ Service Worker registration failed: ' + error.message;
+                status.className = 'status error';
+            }
+        }
+        
+        // Manifest check
+        async function checkManifest() {
+            const status = document.getElementById('manifestStatus');
+            
+            try {
+                const response = await fetch('/manifest.json');
+                if (!response.ok) {
+                    throw new Error('Manifest not found');
+                }
+                
+                const manifest = await response.json();
+                const requiredFields = ['name', 'short_name', 'start_url', 'display', 'icons'];
+                const missingFields = requiredFields.filter(field => !manifest[field]);
+                
+                if (missingFields.length === 0) {
+                    status.innerHTML = `✅ Manifest valid: ${manifest.name}`;
+                    status.className = 'status success';
+                } else {
+                    status.innerHTML = `⚠️ Manifest missing fields: ${missingFields.join(', ')}`;
+                    status.className = 'status warning';
+                }
+            } catch (error) {
+                status.innerHTML = '❌ Manifest error: ' + error.message;
+                status.className = 'status error';
+            }
+        }
+        
+        // Icons check
+        async function checkIcons() {
+            const status = document.getElementById('iconsStatus');
+            const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            let loadedIcons = 0;
+            let errors = [];
+            
+            for (const size of iconSizes) {
+                try {
+                    const response = await fetch(`/icons/icon-${size}x${size}.png`);
+                    if (response.ok) {
+                        loadedIcons++;
+                    } else {
+                        errors.push(`${size}x${size}`);
+                    }
+                } catch (error) {
+                    errors.push(`${size}x${size}`);
+                }
+            }
+            
+            if (loadedIcons === iconSizes.length) {
+                status.innerHTML = `✅ All ${loadedIcons} icons loaded`;
+                status.className = 'status success';
+            } else {
+                status.innerHTML = `⚠️ ${loadedIcons}/${iconSizes.length} icons loaded. Missing: ${errors.join(', ')}`;
+                status.className = 'status warning';
+            }
+        }
+        
+        // PWA Installation check
+        function checkPWAInstallation() {
+            const status = document.getElementById('installStatus');
+            
+            if (!('beforeinstallprompt' in window)) {
+                status.innerHTML = '⚠️ PWA installation not supported or already installed';
+                status.className = 'status warning';
+                return;
+            }
+            
+            status.innerHTML = '✅ PWA installation supported';
+            status.className = 'status success';
+        }
+        
+        // Browser compatibility check
+        function checkBrowserCompatibility() {
+            const status = document.getElementById('browserStatus');
+            const userAgent = navigator.userAgent;
+            let browser = 'Unknown';
+            let supported = false;
+            
+            if (userAgent.includes('Chrome')) {
+                browser = 'Chrome';
+                supported = true;
+            } else if (userAgent.includes('Firefox')) {
+                browser = 'Firefox';
+                supported = true;
+            } else if (userAgent.includes('Safari')) {
+                browser = 'Safari';
+                supported = true;
+            } else if (userAgent.includes('Edge')) {
+                browser = 'Edge';
+                supported = true;
+            }
+            
+            if (supported) {
+                status.innerHTML = `✅ ${browser} - PWA supported`;
+                status.className = 'status success';
+            } else {
+                status.innerHTML = `⚠️ ${browser} - PWA support limited`;
+                status.className = 'status warning';
+            }
+        }
+        
+        // Install PWA
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                        document.getElementById('installBtn').textContent = 'Installing...';
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        // Listen for beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired');
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').disabled = false;
+            document.getElementById('installStatus').innerHTML = '✅ Install prompt available - Click button to install';
+            document.getElementById('installStatus').className = 'status success';
+        });
+        
+        // Listen for appinstalled
+        window.addEventListener('appinstalled', (e) => {
+            console.log('PWA was installed');
+            document.getElementById('installBtn').textContent = 'App Installed!';
+            document.getElementById('installBtn').disabled = true;
+            document.getElementById('installStatus').innerHTML = '🎉 App successfully installed!';
+            document.getElementById('installStatus').className = 'status success';
+        });
+        
+        // Initialize all checks
+        window.addEventListener('load', () => {
+            checkSecurity();
+            checkServiceWorker();
+            checkManifest();
+            checkIcons();
+            checkPWAInstallation();
+            checkBrowserCompatibility();
+        });
+    </script>
+</body>
+</html>

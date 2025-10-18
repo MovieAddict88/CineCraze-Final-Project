@@ -3222,6 +3222,7 @@
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.7/shaka-player.compiled.js"></script>
+    <script src="/debug-pwa.js"></script>
     <script>
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
@@ -8245,7 +8246,6 @@ playerInstance.on('ready', event => {
         // --- PWA Installation ---
         let deferredPrompt;
         const installButton = document.getElementById('installButton');
-        const downloadButton = document.getElementById('downloadButton');
 
         // Register service worker
         if ('serviceWorker' in navigator) {
@@ -8262,16 +8262,21 @@ playerInstance.on('ready', event => {
 
         // Listen for the beforeinstallprompt event
         window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('PWA install prompt triggered');
+            console.log('🎉 PWA install prompt triggered!', e);
             // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
             // Stash the event so it can be triggered later
             deferredPrompt = e;
+            console.log('🎉 deferredPrompt set:', !!deferredPrompt);
         });
 
         // Handle install button click
         installButton.addEventListener('click', async () => {
+            console.log('🔘 Install button clicked');
+            console.log('🔘 deferredPrompt available:', !!deferredPrompt);
+            
             if (deferredPrompt) {
+                console.log('🔘 Showing install prompt');
                 // Show the install prompt
                 deferredPrompt.prompt();
                 // Wait for the user to respond to the prompt
@@ -8280,6 +8285,7 @@ playerInstance.on('ready', event => {
                 // Clear the deferredPrompt so it can only be used once
                 deferredPrompt = null;
             } else {
+                console.log('🔘 No deferredPrompt available');
                 // If PWA install is not available, show a message
                 showNotification('PWA installation is not available in this browser. Please use a modern browser like Chrome, Edge, or Safari.', 'info');
             }

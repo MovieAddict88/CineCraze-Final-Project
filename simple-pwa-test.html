@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineCraze PWA Test</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #141414; 
+            color: white; 
+            text-align: center;
+        }
+        .install-btn { 
+            background: #e50914; 
+            color: white; 
+            border: none; 
+            padding: 20px 40px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 18px;
+            margin: 20px;
+        }
+        .install-btn:hover { background: #b20710; }
+        .status { margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .success { background: #28a745; }
+        .error { background: #dc3545; }
+        .info { background: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🎬 CineCraze PWA Test</h1>
+    <p>This is a simple test to check if PWA installation works.</p>
+    
+    <button id="installBtn" class="install-btn" disabled>Install CineCraze App</button>
+    
+    <div id="status" class="status info">
+        <p>Checking PWA support...</p>
+    </div>
+    
+    <div id="debug" style="text-align: left; margin-top: 30px; padding: 20px; background: #222; border-radius: 5px;">
+        <h3>Debug Info:</h3>
+        <div id="debugInfo"></div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        const status = document.getElementById('status');
+        const debugInfo = document.getElementById('debugInfo');
+        
+        // Debug information
+        function addDebugInfo(info) {
+            debugInfo.innerHTML += '<p>' + info + '</p>';
+        }
+        
+        // Check PWA support
+        function checkSupport() {
+            addDebugInfo('🔒 Secure context: ' + window.isSecureContext);
+            addDebugInfo('⚙️ Service Worker support: ' + ('serviceWorker' in navigator));
+            addDebugInfo('📱 beforeinstallprompt support: ' + ('beforeinstallprompt' in window));
+            addDebugInfo('📱 Standalone mode: ' + window.matchMedia('(display-mode: standalone)').matches);
+            addDebugInfo('🌐 User Agent: ' + navigator.userAgent);
+            
+            if (!window.isSecureContext) {
+                status.innerHTML = '❌ PWA requires HTTPS or localhost';
+                status.className = 'status error';
+                return false;
+            }
+            
+            if (!('serviceWorker' in navigator)) {
+                status.innerHTML = '❌ Service Worker not supported';
+                status.className = 'status error';
+                return false;
+            }
+            
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                status.innerHTML = '✅ App is already installed and running in standalone mode';
+                status.className = 'status success';
+                installBtn.textContent = 'App Installed';
+                installBtn.disabled = true;
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Register service worker
+        async function registerSW() {
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                addDebugInfo('✅ Service Worker registered: ' + registration.scope);
+                return true;
+            } catch (error) {
+                addDebugInfo('❌ Service Worker registration failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Check manifest
+        async function checkManifest() {
+            try {
+                const response = await fetch('/manifest.json');
+                if (response.ok) {
+                    const manifest = await response.json();
+                    addDebugInfo('✅ Manifest loaded: ' + manifest.name);
+                    return true;
+                } else {
+                    addDebugInfo('❌ Manifest not found');
+                    return false;
+                }
+            } catch (error) {
+                addDebugInfo('❌ Manifest error: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Install PWA
+        function installPWA() {
+            if (deferredPrompt) {
+                addDebugInfo('🔘 Showing install prompt...');
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    addDebugInfo('👤 User choice: ' + choiceResult.outcome);
+                    if (choiceResult.outcome === 'accepted') {
+                        status.innerHTML = '✅ Installation accepted!';
+                        status.className = 'status success';
+                    } else {
+                        status.innerHTML = '❌ Installation dismissed';
+                        status.className = 'status error';
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                addDebugInfo('❌ No install prompt available');
+                status.innerHTML = '❌ Install prompt not available';
+                status.className = 'status error';
+            }
+        }
+        
+        // Listen for beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            addDebugInfo('🎉 beforeinstallprompt event fired!');
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.disabled = false;
+            status.innerHTML = '✅ Install prompt available - Click button to install';
+            status.className = 'status success';
+        });
+        
+        // Listen for appinstalled
+        window.addEventListener('appinstalled', (e) => {
+            addDebugInfo('🎉 App installed successfully!');
+            status.innerHTML = '🎉 App installed successfully!';
+            status.className = 'status success';
+            installBtn.textContent = 'App Installed!';
+            installBtn.disabled = true;
+        });
+        
+        // Initialize
+        window.addEventListener('load', async () => {
+            addDebugInfo('🚀 Initializing PWA test...');
+            
+            if (!checkSupport()) {
+                return;
+            }
+            
+            const swRegistered = await registerSW();
+            const manifestOk = await checkManifest();
+            
+            if (swRegistered && manifestOk) {
+                status.innerHTML = '✅ PWA ready! Waiting for install prompt...';
+                status.className = 'status success';
+            } else {
+                status.innerHTML = '❌ PWA setup incomplete';
+                status.className = 'status error';
+            }
+        });
+        
+        // Button click handler
+        installBtn.addEventListener('click', installPWA);
+    </script>
+</body>
+</html>
