@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineCraze</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Stream your favorite movies and TV shows with CineCraze - the ultimate entertainment platform">
+    <meta name="theme-color" content="#e50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CineCraze">
+    <meta name="msapplication-TileColor" content="#e50914">
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="shortcut icon" href="/icons/icon-192x192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
@@ -226,6 +248,150 @@
             display: flex;
             align-items: center;
             gap: 20px;
+        }
+
+        .install-app-btn {
+            background: var(--primary) !important;
+            color: white !important;
+            border: none;
+            padding: 10px 16px !important;
+            border-radius: 25px !important;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+            font-size: 14px !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .install-app-btn:hover {
+            background: var(--primary-dark) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+        }
+
+        .install-app-btn i {
+            font-size: 16px;
+        }
+
+        .install-text {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .install-text {
+                display: inline;
+            }
+        }
+
+        /* PWA Install Banner */
+        .pwa-install-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(229, 9, 20, 0.3);
+            animation: slideInDown 0.6s ease-out;
+        }
+
+        .install-banner-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .install-banner-text h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .install-banner-text p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .install-banner-text i {
+            margin-right: 8px;
+            color: #ffd700;
+        }
+
+        .install-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .install-banner-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .install-banner-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .install-banner-close {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .install-banner-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .install-banner-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .install-banner-text h3 {
+                font-size: 1.2rem;
+            }
+            
+            .install-banner-text p {
+                font-size: 0.9rem;
+            }
         }
 
         .theme-toggle {
@@ -2781,6 +2947,10 @@
             <button class="mobile-search-btn" id="mobile-search-btn">
                 <i class="fas fa-search"></i>
             </button>
+            <button class="install-app-btn" id="pwa-install-btn" title="Install CineCraze App" style="display: none;">
+                <i class="fas fa-download"></i>
+                <span class="install-text">Install App</span>
+            </button>
             <button class="theme-toggle" id="refresh-btn" title="Refresh Data">
                 <i class="fas fa-sync-alt"></i>
             </button>
@@ -2798,6 +2968,24 @@
 
     <!-- Main Content -->
     <main>
+        <!-- PWA Install Banner -->
+        <div class="pwa-install-banner" id="pwa-install-banner" style="display: none;">
+            <div class="install-banner-content">
+                <div class="install-banner-text">
+                    <h3><i class="fas fa-mobile-alt"></i> Install CineCraze App</h3>
+                    <p>Get the full experience with our mobile app - faster, offline access, and notifications!</p>
+                </div>
+                <div class="install-banner-actions">
+                    <button class="install-banner-btn" onclick="installPWA()">
+                        <i class="fas fa-download"></i> Install Now
+                    </button>
+                    <button class="install-banner-close" onclick="closeInstallBanner()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Carousel -->
         <div class="carousel">
             <div class="carousel-inner" id="carousel-inner">
@@ -8179,7 +8367,323 @@ playerInstance.on('ready', event => {
 });
         // --- End Stretch Functionality ---
 
+        // --- PWA Functionality ---
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New content is available, show update notification
+                                    showUpdateNotification();
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        let installButton;
+        let isInstalled = false;
+
+        // Check if app is already installed
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            isInstalled = true;
+            hideInstallButton();
+        });
+
+        // Check if running as PWA
+        function checkIfInstalled() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone === true ||
+                   document.referrer.includes('android-app://');
+        }
+
+        if (checkIfInstalled()) {
+            isInstalled = true;
+            hideInstallButton();
+        } else {
+            // Show install button by default
+            showInstallButton();
+            
+            // Also show after a delay if beforeinstallprompt hasn't fired
+            setTimeout(() => {
+                if (!deferredPrompt && !isInstalled) {
+                    showInstallButton();
+                }
+            }, 3000);
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt triggered');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button in header
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            if (isInstalled) return;
+            
+            // Show the existing install button
+            const installBtn = document.getElementById('pwa-install-btn');
+            if (installBtn) {
+                installBtn.style.display = 'flex';
+                installBtn.onclick = installPWA;
+            }
+
+            // Show the install banner
+            const installBanner = document.getElementById('pwa-install-banner');
+            if (installBanner) {
+                installBanner.style.display = 'block';
+            }
+
+            // Also show notification banner
+            showInstallNotification();
+        }
+
+        function closeInstallBanner() {
+            const installBanner = document.getElementById('pwa-install-banner');
+            if (installBanner) {
+                installBanner.style.display = 'none';
+            }
+        }
+
+        function hideInstallButton() {
+            const installBtn = document.getElementById('pwa-install-btn');
+            if (installBtn) {
+                installBtn.remove();
+            }
+            const notification = document.querySelector('.pwa-install-notification');
+            if (notification) {
+                notification.remove();
+            }
+        }
+
+        function showInstallNotification() {
+            if (isInstalled) return;
+            
+            // Create install notification
+            const installNotification = document.createElement('div');
+            installNotification.className = 'notification-bar pwa-install-notification';
+            installNotification.innerHTML = `
+                <p><i class="fas fa-mobile-alt"></i> Install CineCraze for a better experience!</p>
+                <button class="install-btn" onclick="installPWA()">Install Now</button>
+                <button class="close-btn" onclick="closeInstallPrompt()">&times;</button>
+            `;
+            
+            // Add styles for install button
+            const style = document.createElement('style');
+            style.textContent = `
+                .install-app-btn {
+                    background: var(--primary);
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    margin-left: 10px;
+                    font-size: 14px;
+                }
+                .install-app-btn:hover {
+                    background: var(--primary-dark);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+                }
+                .install-app-btn i {
+                    margin-right: 8px;
+                }
+                .install-btn {
+                    background: white;
+                    color: var(--primary);
+                    border: none;
+                    padding: 8px 16px;
+                    margin-left: 15px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                .install-btn:hover {
+                    background: #f0f0f0;
+                    transform: translateY(-1px);
+                }
+                .pwa-install-notification {
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+                    animation: slideDown 0.5s ease-out;
+                }
+                @keyframes slideDown {
+                    from { transform: translateY(-100%); }
+                    to { transform: translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.insertBefore(installNotification, document.body.firstChild);
+            installNotification.style.display = 'flex';
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                        hideInstallButton();
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                    closeInstallPrompt();
+                });
+            } else {
+                // Fallback for browsers that don't support install prompt
+                showInstallInstructions();
+            }
+        }
+
+        function showInstallInstructions() {
+            const instructions = `
+                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                           background: white; color: #333; padding: 30px; border-radius: 12px; 
+                           box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 10000; max-width: 400px;">
+                    <h3 style="margin: 0 0 15px 0; color: var(--primary);">
+                        <i class="fas fa-mobile-alt"></i> Install CineCraze
+                    </h3>
+                    <p style="margin: 0 0 20px 0; line-height: 1.5;">
+                        To install this app on your device:
+                    </p>
+                    <div style="text-align: left; margin-bottom: 20px;">
+                        <p><strong>Chrome/Edge:</strong> Look for the install icon in the address bar</p>
+                        <p><strong>Safari (iOS):</strong> Tap Share → Add to Home Screen</p>
+                        <p><strong>Android:</strong> Look for "Add to Home Screen" in the menu</p>
+                    </div>
+                    <button onclick="this.parentElement.remove()" 
+                            style="background: var(--primary); color: white; border: none; 
+                                   padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%;">
+                        Got it!
+                    </button>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', instructions);
+        }
+
+        function closeInstallPrompt() {
+            const notification = document.querySelector('.notification-bar');
+            if (notification) {
+                notification.remove();
+            }
+        }
+
+        // Update notification
+        function showUpdateNotification() {
+            const updateNotification = document.createElement('div');
+            updateNotification.className = 'notification-bar';
+            updateNotification.innerHTML = `
+                <p>New version available! Refresh to update.</p>
+                <button class="update-btn" onclick="updateApp()">Update</button>
+                <button class="close-btn" onclick="closeUpdatePrompt()">&times;</button>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .update-btn {
+                    background: white;
+                    color: var(--primary);
+                    border: none;
+                    padding: 8px 16px;
+                    margin-left: 15px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .update-btn:hover {
+                    background: #f0f0f0;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.insertBefore(updateNotification, document.body.firstChild);
+            updateNotification.style.display = 'flex';
+        }
+
+        function updateApp() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration().then(registration => {
+                    if (registration && registration.waiting) {
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+
+        function closeUpdatePrompt() {
+            const notification = document.querySelector('.notification-bar');
+            if (notification) {
+                notification.remove();
+            }
+        }
+
+        // Handle app installed event
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('PWA was installed');
+            closeInstallPrompt();
+        });
+
+        // Handle online/offline status
+        function updateOnlineStatus() {
+            const status = navigator.onLine ? 'online' : 'offline';
+            console.log('Connection status:', status);
+            
+            if (!navigator.onLine) {
+                // Show offline indicator
+                const offlineIndicator = document.createElement('div');
+                offlineIndicator.id = 'offline-indicator';
+                offlineIndicator.style.cssText = `
+                    position: fixed;
+                    top: 70px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #ff4444;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    z-index: 1002;
+                    font-size: 14px;
+                `;
+                offlineIndicator.textContent = 'You are offline';
+                document.body.appendChild(offlineIndicator);
+            } else {
+                const indicator = document.getElementById('offline-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // --- End PWA Functionality ---
+
     </script>
 
 </body>
-</h
+</html>
