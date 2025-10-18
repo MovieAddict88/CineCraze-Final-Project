@@ -1895,8 +1895,9 @@
             cursor: pointer;
         }
         
-        .install-button.hidden {
-            display: none;
+        .install-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .download-button::before {
@@ -3167,8 +3168,7 @@
         <div class="footer-content">
             <div class="footer-about">
                 <div class="download-section">
-                    <button id="installButton" class="install-button hidden">Install CineCraze App</button>
-                    <a href="https://github.com/MovieAddict88/Movie-Source/raw/main/CineCraze.apk" class="download-button" id="downloadButton">Download CineCraze App</a>
+                    <button id="installButton" class="install-button">Install CineCraze App</button>
                     <img src="https://raw.githubusercontent.com/MovieAddict88/Movie-Source/main/cinecraze.png" alt="CineCraze App" class="download-image">
                 </div>
                 <p>Your ultimate destination for unlimited movies, TV shows, and live television. Stream anytime, anywhere on all your devices.</p>
@@ -8267,9 +8267,6 @@ playerInstance.on('ready', event => {
             e.preventDefault();
             // Stash the event so it can be triggered later
             deferredPrompt = e;
-            // Show the install button
-            installButton.classList.remove('hidden');
-            downloadButton.style.display = 'none';
         });
 
         // Handle install button click
@@ -8282,18 +8279,15 @@ playerInstance.on('ready', event => {
                 console.log(`User response to the install prompt: ${outcome}`);
                 // Clear the deferredPrompt so it can only be used once
                 deferredPrompt = null;
-                // Hide the install button
-                installButton.classList.add('hidden');
-                downloadButton.style.display = 'inline-block';
+            } else {
+                // If PWA install is not available, show a message
+                showNotification('PWA installation is not available in this browser. Please use a modern browser like Chrome, Edge, or Safari.', 'info');
             }
         });
 
         // Listen for the appinstalled event
         window.addEventListener('appinstalled', (evt) => {
             console.log('PWA was installed');
-            // Hide the install button
-            installButton.classList.add('hidden');
-            downloadButton.style.display = 'inline-block';
             // Show success message
             showNotification('CineCraze has been installed successfully!', 'success');
         });
@@ -8302,8 +8296,9 @@ playerInstance.on('ready', event => {
         window.addEventListener('load', () => {
             if (window.matchMedia('(display-mode: standalone)').matches) {
                 console.log('App is running in standalone mode');
-                installButton.classList.add('hidden');
-                downloadButton.style.display = 'none';
+                installButton.textContent = 'App Installed';
+                installButton.disabled = true;
+                installButton.style.opacity = '0.6';
             }
         });
 
