@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineCraze</title>
+    <meta name="application-name" content="CineCraze">
+    <meta name="theme-color" content="#e50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+    <link rel="icon" href="icons/icon-512.png" sizes="512x512" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
@@ -2758,6 +2766,7 @@
     <div class="notification-bar" id="notification-bar">
         <p id="notification-message"></p>
         <button class="close-btn" id="close-notification">&times;</button>
+        <button class="close-btn" id="install-app" style="display:none">Install</button>
     </div>
 
     <!-- Header -->
@@ -3159,6 +3168,77 @@
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.7/shaka-player.compiled.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function (err) {
+            console.warn('Service worker registration failed:', err);
+          });
+        });
+      }
+    </script>
+    <script>
+      // In-app install prompt for Android (and Chrome desktop)
+      (function () {
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('install-app');
+        const notificationBar = document.getElementById('notification-bar');
+        const notificationMessage = document.getElementById('notification-message');
+        const closeBtn = document.getElementById('close-notification');
+        const header = document.querySelector('header');
+
+        function showInstallBar() {
+          if (!notificationBar) return;
+          if (notificationMessage) {
+            notificationMessage.textContent = 'Install CineCraze for faster access and offline support';
+          }
+          notificationBar.style.display = 'flex';
+          setTimeout(() => {
+            if (notificationBar.offsetHeight > 0 && header) {
+              header.style.top = `${notificationBar.offsetHeight}px`;
+            }
+          }, 50);
+          if (installBtn) installBtn.style.display = 'inline-block';
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Prevent the mini-infobar from appearing on mobile
+          e.preventDefault();
+          deferredPrompt = e;
+          showInstallBar();
+        });
+
+        if (installBtn) {
+          installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            installBtn.disabled = true;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              installBtn.style.display = 'none';
+              if (notificationBar) notificationBar.style.display = 'none';
+              if (header) header.style.top = '0';
+            } else {
+              installBtn.disabled = false;
+            }
+            deferredPrompt = null;
+          });
+        }
+
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            if (notificationBar) notificationBar.style.display = 'none';
+            if (header) header.style.top = '0';
+          });
+        }
+
+        window.addEventListener('appinstalled', () => {
+          if (installBtn) installBtn.style.display = 'none';
+          if (notificationBar) notificationBar.style.display = 'none';
+          if (header) header.style.top = '0';
+        });
+      })();
+    </script>
     <script>
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
